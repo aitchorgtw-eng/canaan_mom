@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>探視聲明表 - 參數調校與預填工具 V4 (佈局強化版)</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 20px; background-color: #f4f6f8; margin: 0; }
+        .container { background: #ffffff; padding: 0; border-radius: 12px; box-shadow: 0 5px 15px rgba(0,0,0,0.08); max-width: 800px; margin: 20px auto; overflow: hidden; }
+        .header { background-color: #3498db; color: white; padding: 20px 25px; margin: 0; }
+        h2 { margin: 0; font-size: 22px; }
+        .content { padding: 25px; }
+        .status-bar { background-color: #fff3cd; color: #856404; padding: 12px; border-radius: 5px; font-size: 14px; font-weight: bold; margin-bottom: 25px; border-left: 5px solid #ffeeba; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-bottom: 5px; }
+        .form-group { display: flex; flex-direction: column; background: #f9f9f9; padding: 12px; border-radius: 8px; border: 1px solid #eee; }
+        label { font-weight: bold; margin-bottom: 8px; font-size: 13px; color: #444; }
+        input[type="text"] { padding: 10px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 14px; }
+        
+        /* 物理欄位狀態標示 */
+        input.id-locked { background-color: #e0e0e0; color: #757575; font-family: monospace; font-size: 12px; margin-bottom: 5px; border: 1px dashed #ccc; cursor: not-allowed; }
+        input.id-editable { background-color: #fffde7; font-family: monospace; border: 1px solid #ff9800; font-size: 12px; margin-bottom: 5px; color: #d84315; font-weight: bold; }
+        .temp-group { border: 2px solid #2196f3; background-color: #e3f2fd; }
+        .hint { font-size: 11px; color: #e91e63; margin-top: 6px; }
+        
+        /* 動作區塊 (強制對比，防止複製漏接) */
+        .action-area { background-color: #f8f9fa; padding: 25px; border-top: 1px solid #e9ecef; text-align: center; }
+        .btn-generate { background: #28a745; color: white; border: none; padding: 16px 30px; border-radius: 8px; cursor: pointer; font-size: 18px; font-weight: bold; width: 100%; max-width: 400px; box-shadow: 0 4px 6px rgba(40, 167, 69, 0.2); transition: all 0.2s; }
+        .btn-generate:hover { background: #218838; transform: translateY(-2px); box-shadow: 0 6px 12px rgba(40, 167, 69, 0.3); }
+        .url-preview { margin-top: 15px; font-size: 11px; color: #6c757d; word-break: break-all; font-family: monospace; text-align: left; background: #e9ecef; padding: 10px; border-radius: 4px; display: none; }
+        
+        /* 針對列印引擎避彈衣 */
+        @page { margin: 0; }
+        @media print { body { display: none; } }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h2>探視聲明表預填工具 V4</h2>
+    </div>
+    
+    <div class="content">
+        <div class="status-bar">⚠ 系統已載入驗證成功之參數。若最後兩題預填失敗，請直接在黃底欄位修正 ID 數字。</div>
+        
+        <div class="grid">
+            <!-- 基礎資料 (鎖定) -->
+            <div class="form-group"><label>訪客姓名</label><input type="text" class="id-locked" id="id_1" value="943433341" readonly><input type="text" id="val_1" value="吳月江"></div>
+            <div class="form-group"><label>聯絡電話</label><input type="text" class="id-locked" id="id_2" value="1796686711" readonly><input type="text" id="val_2" value="0910980125"></div>
+            <div class="form-group"><label>住民姓名</label><input type="text" class="id-locked" id="id_3" value="2066228629" readonly><input type="text" id="val_3" value="吳寶林"></div>
+            <div class="form-group"><label>住民床號</label><input type="text" class="id-locked" id="id_4" value="1945164522" readonly><input type="text" id="val_4" value="3031"></div>
+            <div class="form-group"><label>關係</label><input type="text" class="id-locked" id="id_5" value="2086513877" readonly><input type="text" id="val_5" value="夫妻"></div>
+            
+            <!-- 體溫微調區 -->
+            <div class="form-group temp-group">
+                <label style="color: #1565c0;">▶ 量測體溫 (°C)</label>
+                <input type="text" class="id-locked" id="id_6" value="1626099502" readonly>
+                <input type="text" id="val_6" value="36.5" style="font-weight: bold; font-size: 16px; color: #d32f2f;">
+            </div>
+
+            <!-- 接觸史防護區 (可調校) -->
+            <div class="form-group">
+                <label>症狀: 最近三天</label>
+                <input type="text" class="id-editable" id="id_7" value="991672005" title="可手動修改">
+                <input type="text" id="val_7" value="無">
+            </div>
+            <div class="form-group">
+                <label>接觸: 新冠 (5日內)</label>
+                <input type="text" class="id-editable" id="id_8" value="1524287666" title="可手動修改">
+                <input type="text" id="val_8" value="無">
+            </div>
+            <div class="form-group">
+                <label>接觸: 流感 (5日內)</label>
+                <input type="text" class="id-editable" id="id_9" value="210894078" title="可手動修改">
+                <input type="text" id="val_9" value="無">
+                <div class="hint">備註: 若失敗可嘗試補 1 變 2108940871</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 絕對不會漏看的按鈕區塊 -->
+    <div class="action-area">
+        <button type="button" class="btn-generate" onclick="generateAndOpen()">產生預填表單並前往送出</button>
+        <div class="url-preview" id="urlPreview"></div>
+    </div>
+</div>
+
+<script>
+    function generateAndOpen() {
+        const baseUrl = "https://docs.google.com/forms/d/1slrvZTpT9J7mRdAqo3CxMddzyzlbfkG3Q6vAJsiIYuQ/viewform?usp=pp_url";
+        let queryString = "";
+
+        for(let i = 1; i <= 9; i++) {
+            // 資料清洗：剔除使用者可能誤按的空白與非數字字元 (錯誤隔離)
+            let rawId = document.getElementById('id_' + i).value;
+            let idInput = rawId.replace(/[^0-9]/g, ''); 
+            
+            let valInput = document.getElementById('val_' + i).value.trim();
+            if(i === 6) { valInput = valInput.replace(/\s+/g, ''); }
+
+            if(idInput !== "" && valInput !== "") {
+                queryString += "&entry." + idInput + "=" + encodeURIComponent(valInput);
+            }
+        }
+
+        const finalUrl = baseUrl + queryString;
+        
+        const preview = document.getElementById('urlPreview');
+        preview.style.display = 'block';
+        preview.innerText = "背景封包: " + finalUrl;
+        
+        try {
+            // 透過新視窗開啟，確保當前工具頁面狀態不會遺失
+            window.open(finalUrl, '_blank');
+        } catch (e) {
+            alert("彈出視窗被瀏覽器阻擋，請允許「彈出式視窗與重新導向」。");
+        }
+    }
+</script>
+
+</body>
+</html>
